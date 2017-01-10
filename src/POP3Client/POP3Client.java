@@ -21,22 +21,14 @@ public class POP3Client extends Application {
     
     @Override
     public void start(Stage primaryStage) {
-        Button btn = new Button();
-        btn.setText("Say 'Hello World'");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-            
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("Hello World!");
-            }
-        });
-        
+       
+        View vw = new View();
         StackPane root = new StackPane();
-        root.getChildren().add(btn);
+        root.getChildren().add(vw.getRootNode());
         
-        Scene scene = new Scene(root, 300, 250);
+        Scene scene = new Scene(root, 800, 600);
         
-        primaryStage.setTitle("Hello World!");
+        primaryStage.setTitle("Pop3 client");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
