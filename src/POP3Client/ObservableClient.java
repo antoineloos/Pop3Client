@@ -107,8 +107,10 @@ public class ObservableClient extends Observable{
     
     private void traiteTransaction(String msg)
     {
-        Matcher m = Pattern.compile("^([0-9]+) octets\\s?\\r?\\n(.|\\s)+$").matcher(msg);
-        if (m.find())
+        Matcher m = Pattern.compile("^([0-9]+) octets\\s?\\r?\\n(.|\\s|\\n|\\r)+$").matcher(msg);
+        if (m.find()) {
+            
+        }
     }
     
     private String getMD5(String timestamp) {
