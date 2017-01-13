@@ -54,12 +54,12 @@ public class ThreadClient extends Thread {
     public void run() {
         try {
             this.InitListener();
-        } catch (IOException ex) {
-            Logger.getLogger(ThreadClient.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            client.setException(ex);
         }
     }
 
-    private void InitListener() throws IOException {
+    private void InitListener() throws IOException, Exception {
         while (actif == true) {
             String request = "";
             int buffersize = in.available();
