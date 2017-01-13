@@ -55,7 +55,7 @@ public class ThreadClient extends Thread {
         try {
             this.InitListener();
         } catch (Exception ex) {
-            client.setException(ex);
+            getClient().setException(ex);
         }
     }
 
@@ -76,9 +76,16 @@ public class ThreadClient extends Thread {
             if (m.find()) {
                 String code = m.group(1);
                 String msg = m.group(2);
-                client.traiteEvt(code, msg);
+                getClient().traiteEvt(code, msg);
             }
         }
+    }
+
+    /**
+     * @return the client
+     */
+    public ObservableClient getClient() {
+        return client;
     }
     
     

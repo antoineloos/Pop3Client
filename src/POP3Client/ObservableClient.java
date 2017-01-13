@@ -69,6 +69,7 @@ public class ObservableClient extends Observable{
                             break;
                         case "Update" :
                             socket.close();
+                            this.etat = "Connexion closed";
                         default :
                             break;
                     }
@@ -91,6 +92,7 @@ public class ObservableClient extends Observable{
                             break;
                         case "Update" :
                             socket.close();
+                            this.etat = "Connexion closed";
                             throw new Exception(msg);
                         default :
                             break;
@@ -241,8 +243,8 @@ public class ObservableClient extends Observable{
     {
         String request = "QUIT";
         sendRequest(request);
-        if ("transaction".equals(this.getEtat())) {
-            etat = "update";
+        if ("Transaction".equals(this.getEtat())) {
+            etat = "Update";
         }
     }
 
