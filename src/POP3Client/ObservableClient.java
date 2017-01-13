@@ -247,6 +247,7 @@ public class ObservableClient extends Observable{
         if ("Transaction".equals(this.getEtat())) {
             etat = "Update";
         }
+        this.notifyObservers();
     }
 
     /**
