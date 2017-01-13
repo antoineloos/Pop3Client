@@ -53,7 +53,7 @@ public class View implements Observer  {
         connectBtn= new JFXButton("Connect");
         connectBtn.setStyle(style);
         
-        loginBtn = new JFXButton("Connexion");
+        loginBtn = new JFXButton("Login");
         loginBtn.setStyle(style);
         
         headerPane = new FlowPane();

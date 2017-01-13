@@ -59,7 +59,7 @@ public class ObservableClient extends Observable{
                             
                             break;
                         case "Transaction" :
-                            this.traiteTransaction(msg);
+                           // this.traiteTransaction(msg);
                         default :
                             break;
                     }
@@ -105,11 +105,11 @@ public class ObservableClient extends Observable{
        
     }
     
-    private void traiteTransaction(String msg)
-    {
-        Matcher m = Pattern.compile("^([0-9]+) octets\\s?\\r?\\n(.|\\s)+$").matcher(msg);
-        if (m.find())
-    }
+//    private void traiteTransaction(String msg)
+//    {
+//        Matcher m = Pattern.compile("^([0-9]+) octets\\s?\\r?\\n(.|\\s)+$").matcher(msg);
+//        if (m.find())
+//    }
     
     private String getMD5(String timestamp) {
         return "";
