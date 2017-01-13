@@ -65,6 +65,7 @@ public class ObservableClient extends Observable{
                             
                             break;
                         case "Transaction" :
+
                             this.traiteTransaction(msg);
                             break;
                         case "Update" :
