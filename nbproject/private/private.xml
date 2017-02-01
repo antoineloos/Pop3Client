@@ -3,9 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Epulapp/Desktop/POP3TP/Pop3Client/src/POP3Client/POP3Client.java</file>
-            <file>file:/C:/Users/Epulapp/Desktop/POP3TP/Pop3Client/src/POP3Client/View.java</file>
-            <file>file:/C:/Users/Epulapp/Desktop/POP3TP/Pop3Client/src/POP3Client/ListItem.java</file>
+            <file>file:/C:/Users/Epulapp/Documents/POP3TP/Pop3Client/src/POP3Client/POP3Client.java</file>
+            <file>file:/C:/Users/Epulapp/Documents/POP3TP/Pop3Client/src/POP3Client/ObservableClient.java</file>
+            <file>file:/C:/Users/Epulapp/Documents/POP3TP/Pop3Client/src/POP3Client/CustomEventHandler.java</file>
+            <file>file:/C:/Users/Epulapp/Documents/POP3TP/Pop3Client/src/POP3Client/View.java</file>
+            <file>file:/C:/Users/Epulapp/Documents/POP3TP/Pop3Client/src/POP3Client/Mail.java</file>
+            <file>file:/C:/Users/Epulapp/Documents/POP3TP/Pop3Client/src/POP3Client/ThreadClient.java</file>
         </group>
     </open-files>
 </project-private>

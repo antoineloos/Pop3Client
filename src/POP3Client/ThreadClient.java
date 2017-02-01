@@ -69,16 +69,22 @@ public class ThreadClient extends Thread {
                 }
                 byte[] buffer = new byte[buffersize];
                 in.read(buffer);
-                request += Arrays.toString(buffer);
+                String bufferstring = new String(buffer);
+                    request += bufferstring;
+                
+                buffersize = in.available();
             }
-
-            Matcher m = Pattern.compile("^(\\+OK|\\-ERR)\\s((.|\\s)+)$").matcher(request);
+          
+            Matcher m = Pattern.compile("^(\\+OK|\\-ERR)\\s((.|\\s|\\W)+)$").matcher(request);
             if (m.find()) {
                 String code = m.group(1);
                 String msg = m.group(2);
+                
                 getClient().traiteEvt(code, msg);
             }
+            
         }
+        System.out.println("sorti");
     }
 
     /**

@@ -76,23 +76,23 @@ public class Mail {
         if (m.find()) {
             this.replyTo = m.group(1);
         }
-        m = Pattern.compile("From:\\s([a-zA-Z0-9]|\\.|@)+\\r?\\n").matcher(this.contenu);
+        m = Pattern.compile("From:\\s(([a-zA-Z0-9]|\\.|@)+)\\r?\\n").matcher(this.contenu);
         if (m.find()) {
             this.from = m.group(1);
         }
-        m = Pattern.compile("To:\\s([a-zA-Z0-9]|\\.|@)+\\r?\\n").matcher(this.contenu);
+        m = Pattern.compile("To:\\s(([a-zA-Z0-9]|\\.|@)+)\\r?\\n").matcher(this.contenu);
         if (m.find()) {
             this.to = m.group(1);
         }
-        m = Pattern.compile("Subject:\\s(\\w|\\W)+\\r?\\n").matcher(this.contenu);
+        m = Pattern.compile("Subject:\\s(([a-zA-Z0-9]|\\.|\\s)+)\\r?\\n").matcher(this.contenu);
         if (m.find()) {
             this.subject = m.group(1);
         }
-        m = Pattern.compile("MIME-Version:\\s([0-9]|\\.)+\\r?\\n").matcher(this.contenu);
+        m = Pattern.compile("MIME-Version:\\s(([0-9]|\\.)+)\\r?\\n").matcher(this.contenu);
         if (m.find()) {
             this.mimeVersion = m.group(1);
         }
-        m = Pattern.compile("\\r?\\n\\r?\\n(\\w|\\W)$").matcher(this.contenu);
+        m = Pattern.compile("\\r?\\n\\r?\\n((\\w|\\W)+)$").matcher(this.contenu);
         if (m.find()) {
             this.body = m.group(1);
         }

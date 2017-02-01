@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  */
 public class ObservableClient extends Observable{
     
-    private String etat = "Connexion closed";
+    private String etat = "Connexion open";
     private int cptError = 0;
     private String userName = "kdebbiche";
     private Socket socket;
@@ -37,25 +37,29 @@ public class ObservableClient extends Observable{
     
     public ObservableClient(Socket socket)
     {
+        mails = new ArrayList<Mail>();
         this.socket = socket;
     }
     
     
     public void traiteEvt(String code, String msg) throws IOException, Exception
     {
+        try{
         Matcher m;
+        System.out.println(msg);
         switch(code) {
             case "+OK" :
                     switch(getEtat()) {
                         case "Connexion open" :
-                            m = Pattern.compile("^POP3 server ready\\s?(.+)$").matcher(msg);
+                            m = Pattern.compile("^POP3 server ready\\s?(.*)$").matcher(msg);
                             if (m.find()) {
                                 this.etat = "Authorization";
                                 this.sendAPOP(m.group(1));
+                                System.out.println("APOP sended");
                             }
                             break;
                         case "Authorization" :
-                            m = Pattern.compile("^maildrop has ([0-9]+) message \\(([0-9]+) octets\\)$").matcher(msg);
+                            m = Pattern.compile("^maildrop has ([0-9]+) messages \\(([0-9]+) octets\\)$").matcher(msg);
                             if (m.find()) {
                                 this.nb_mails = Integer.parseInt(m.group(1));
                                 this.tailleBoite = Integer.parseInt(m.group(2));
@@ -67,6 +71,8 @@ public class ObservableClient extends Observable{
                         case "Transaction" :
 
                             this.traiteTransaction(msg);
+                            this.setChanged();
+                            this.notifyObservers();
                             break;
                         case "Update" :
                             socket.close();
@@ -102,7 +108,12 @@ public class ObservableClient extends Observable{
             default :
                 break;
         }
-        this.notifyObservers();
+         
+        }
+        catch(Exception ex) 
+        {
+            System.out.println(ex.getMessage());
+        }
     }
     
     private void sendAPOP(String timestamp) throws IOException
@@ -118,7 +129,7 @@ public class ObservableClient extends Observable{
     
     private void sendRetrieve(int numero) throws IOException
     {
-        if (numero > 0) {
+        if (numero >= 0) {
             String request = "RETR "+numero;
             sendRequest(request);
         } 
@@ -126,14 +137,15 @@ public class ObservableClient extends Observable{
     
     private void traiteTransaction(String msg) throws IOException, Exception
     {
-        Matcher m = Pattern.compile("^([0-9]+) octets\\s?\\r?\\n(.|\\s|\\n|\\r)+\\.$").matcher(msg);
+        try{
+        Matcher m = Pattern.compile("^([0-9]+) octets\\s?\\r?\\n((.|\\W)+)$").matcher(msg);
         if (m.find()) {
             int taille = Integer.parseInt(m.group(1));
             String szContenu = m.group(2);
             Mail mail = new Mail(messageDemande, taille, szContenu);
             getMails().add(mail);
             if (recuperationBoite == true) {
-                if (this.messageDemande < getNb_mails()) {
+                if (this.messageDemande <= getNb_mails()) {
                     this.messageDemande++;
                     recupereMessage(this.messageDemande);
                 } else {
@@ -171,6 +183,8 @@ public class ObservableClient extends Observable{
                 }
             }
         }
+        }
+        catch(Exception ex){System.err.println(ex.getMessage());}
     }
     
     private void erreurTransaction(String msg) throws Exception
@@ -185,16 +199,20 @@ public class ObservableClient extends Observable{
         return "";
     }
     
-    private void sendRequest(String request) throws IOException
+    private void sendRequest(String requesttmp) throws IOException
     {
+        String request = requesttmp + "\n";
         Thread t= new Thread(new Runnable() {
-
+           
             @Override
             public void run() {
                 BufferedOutputStream out;
+                
                 try {
+                    
                     out = new BufferedOutputStream(socket.getOutputStream());
                     out.write(request.getBytes());
+                    System.out.println(request);
                     out.flush();
                 } catch (IOException ex) {
                     Logger.getLogger(ObservableClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -216,7 +234,7 @@ public class ObservableClient extends Observable{
     {
         if (this.getNb_mails() > 0) {
             this.recuperationBoite = true;
-            this.messageDemande = 1;
+            this.messageDemande = 0;
             this.recupereMessage(messageDemande);
         }
     }
@@ -304,6 +322,9 @@ public class ObservableClient extends Observable{
      */
     public void setException(Exception exception) {
         this.exception = exception.getMessage();
+        System.out.println(exception.getMessage());
+        setChanged();
+        notifyObservers();
     }
     
     
