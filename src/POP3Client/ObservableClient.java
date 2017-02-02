@@ -3,6 +3,8 @@ package POP3Client;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Optional;
@@ -23,9 +25,10 @@ import java.util.regex.Pattern;
  */
 public class ObservableClient extends Observable{
     
-    private String etat = "Connexion open";
+    private String etat = "Connexion closed";
     private int cptError = 0;
     private String userName = "kdebbiche";
+    private String password = "lordgaben";
     private Socket socket;
     private int nb_mails = 0;
     private int tailleBoite = 0;
@@ -42,6 +45,7 @@ public class ObservableClient extends Observable{
     }
     
     
+    
     public void traiteEvt(String code, String msg) throws IOException, Exception
     {
         try{
@@ -51,9 +55,9 @@ public class ObservableClient extends Observable{
             case "+OK" :
                     switch(getEtat()) {
                         case "Connexion open" :
-                            m = Pattern.compile("^POP3 server ready\\s?(.*)$").matcher(msg);
+                            m = Pattern.compile("^POP3 server ready\\s?(<.*>)$").matcher(msg);
                             if (m.find()) {
-                                this.etat = "Authorization";
+                                this.setEtat("Authorization");
                                 this.sendAPOP(m.group(1));
                                 System.out.println("APOP sended");
                             }
@@ -63,7 +67,7 @@ public class ObservableClient extends Observable{
                             if (m.find()) {
                                 this.nb_mails = Integer.parseInt(m.group(1));
                                 this.tailleBoite = Integer.parseInt(m.group(2));
-                                this.etat = "Transaction";
+                                this.setEtat("Transaction");
                                 this.recupererBoite();
                             }
                             
@@ -76,7 +80,7 @@ public class ObservableClient extends Observable{
                             break;
                         case "Update" :
                             socket.close();
-                            this.etat = "Connexion closed";
+                            this.setEtat("Connexion closed");
                         default :
                             break;
                     }
@@ -86,12 +90,12 @@ public class ObservableClient extends Observable{
                         case "Connexion open" :
                             this.cptError ++;
                             if (cptError >= 5) {
-                                this.etat = "Connexion closed";
+                                this.setEtat("Connexion closed");
                                 throw new Exception(msg);
                             }
                             break;
                         case "Authorization" :
-                            this.etat = "Connexion open";
+                            this.setEtat("Connexion open");
                             throw new Exception(msg);
 
                         case "Transaction" :
@@ -99,7 +103,7 @@ public class ObservableClient extends Observable{
                             break;
                         case "Update" :
                             socket.close();
-                            this.etat = "Connexion closed";
+                            this.setEtat("Connexion closed");
                             throw new Exception(msg);
                         default :
                             break;
@@ -145,9 +149,11 @@ public class ObservableClient extends Observable{
             Mail mail = new Mail(messageDemande, taille, szContenu);
             getMails().add(mail);
             if (recuperationBoite == true) {
-                if (this.messageDemande <= getNb_mails()) {
+                if (this.messageDemande < getNb_mails() - 1) {
                     this.messageDemande++;
                     recupereMessage(this.messageDemande);
+
+                    
                 } else {
                     this.messageDemande = 0;
                     this.recuperationBoite = false;
@@ -196,7 +202,8 @@ public class ObservableClient extends Observable{
     }
     
     private String getMD5(String timestamp) {
-        return "";
+        String md5 = getSomme(this.getPassword(), timestamp);
+        return md5;
     }
     
     private void sendRequest(String requesttmp) throws IOException
@@ -263,7 +270,7 @@ public class ObservableClient extends Observable{
         String request = "QUIT";
         sendRequest(request);
         if ("Transaction".equals(this.getEtat())) {
-            etat = "Update";
+            setEtat("Update");
         }
         this.notifyObservers();
     }
@@ -326,6 +333,55 @@ public class ObservableClient extends Observable{
         setChanged();
         notifyObservers();
     }
+
+    /**
+     * @param etat the etat to set
+     */
+    public void setEtat(String etat) {
+        this.etat = etat;
+    }
     
-    
+    public static String getSomme(String mdp, String timbre) {
+        String somme = null;
+        MessageDigest md;
+        try {
+            String message = timbre + mdp;
+            md = MessageDigest.getInstance("md5");
+            md.update(message.getBytes());
+
+            byte[] digest = null;
+            digest = md.digest();
+           // System.err.println(bytesToHex(digest));
+
+            somme = bytesToHex(digest);
+        } catch (NoSuchAlgorithmException ex) {
+            System.err.println("Erreur lors de la génération de la somme de controle");
+        }
+        return somme;
+    }
+
+    public static String bytesToHex(byte[] b) {
+        char hexDigits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a',
+            'b', 'c', 'd', 'e', 'f'};
+        StringBuffer buffer = new StringBuffer();
+        for (int j = 0; j < b.length; j++) {
+            buffer.append(hexDigits[(b[j] >> 4) & 0x0f]);
+            buffer.append(hexDigits[b[j] & 0x0f]);
+        }
+        return buffer.toString();
+    }
+
+    /**
+     * @return the password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * @param password the password to set
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

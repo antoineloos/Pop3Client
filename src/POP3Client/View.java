@@ -8,12 +8,14 @@ package POP3Client;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXTextField;
+import java.awt.Image;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -21,17 +23,20 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.cell.ComboBoxListCell;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.HBoxBuilder;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javax.swing.event.ChangeListener;
 
@@ -51,12 +56,14 @@ public class View implements Observer  {
     private ScrollPane scroolPane;
     private JFXButton loginBtn;
     private JFXButton disconnectBtn;
+    private Mail selectedMail;
     private Label body;
     private Label from;
     private Label objet;
+    private ThreadClient courantClt;
     private JFXListView<Mail> listView;
     private ObservableClient OThread;
-
+    private JFXButton deleteBtn;
     public final String style =  "-fx-background-color: #00B4FF;" + "-fx-spacing: 50px;"+ "-fx-text-fill: white;"+"-fx-font: 16px \"Lato\";";
     public final String styleFieldH = "-fx-text-fill: white;"
             +"-fx-font: 16px \"Lato\";"
@@ -71,15 +78,27 @@ public class View implements Observer  {
     
      public View()
     {
-        connectBtn= new JFXButton("Connect");
+        connectBtn= new JFXButton("Set");
         connectBtn.setStyle(style);
         
         
         loginBtn = new JFXButton("Login");
         loginBtn.setStyle(style);
        
-        disconnectBtn = new JFXButton("Disconnect");
+        disconnectBtn = new JFXButton("Quit");
         disconnectBtn.setStyle(style);
+        disconnectBtn.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) 
+            {
+                try {
+                    OThread.sendQuit();
+                } catch (IOException ex) {
+                    Logger.getLogger(View.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
         
         headerPane = new FlowPane();
         headerPane.setOrientation(Orientation.HORIZONTAL);
@@ -101,7 +120,7 @@ public class View implements Observer  {
                
                 try {
                     ThreadClient t = new ThreadClient(tmp.getText(),Integer.parseInt(tmp2.getText()));
-                    t.launch();
+                    courantClt = t;
                     OThread = t.getClient();
                     
                     OThread.addObserver(view);
@@ -112,6 +131,28 @@ public class View implements Observer  {
                 
             }
         });
+        
+        deleteBtn = new JFXButton("",new ImageView(new javafx.scene.image.Image("POP3Client/trash-can-icon-24.png")));
+       
+        deleteBtn.setStyle(style);
+        deleteBtn.setPrefHeight(40);
+        deleteBtn.setVisible(false);
+        deleteBtn.setPrefWidth(40);
+        deleteBtn.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+               
+            if(OThread!=null) try {
+                OThread.sendDelete(selectedMail.getNumero());
+                listView.getItems().remove(selectedMail);
+            } catch (IOException ex) {
+                Logger.getLogger(View.class.getName()).log(Level.SEVERE, null, ex);
+            }
+                
+            }
+        });
+        
         headerPane.getChildren().add(tmp);
         headerPane.getChildren().add(new WLabel("Port : "));
         headerPane.getChildren().add(tmp2);
@@ -141,18 +182,28 @@ public class View implements Observer  {
         @Override
         protected void updateItem(Mail item, boolean empty)
         {
-                super.updateItem(item, empty);
+            super.updateItem(item, empty);
+            Platform.runLater(new Runnable(){
+                
+
+                @Override
+                public void run() {
+                    
                 if(item!=null)
                 {
                     setText("From : "+item.getFrom()+"\n"+"Objet : "+item.getSubject());
                 }
-                else setText("");
+                else setText(""); //To change body of generated methods, choose Tools | Templates.
+                }
+            });
         }
     });
         
         
         listView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
+                selectedMail = newSelection;
+                if(selectedMail!=null) deleteBtn.setVisible(true);
                 body.setText( newSelection.getBody());
                 from.setText("From : "+newSelection.getFrom());
                 objet.setText("Objet : "+newSelection.getSubject());
@@ -173,7 +224,7 @@ public class View implements Observer  {
         BodyPane.getChildren().add(from);
         BodyPane.getChildren().add(objet);
         BodyPane.getChildren().add(body);
-        
+        BodyPane.getChildren().add(deleteBtn);
         BodyPane.setOrientation(Orientation.VERTICAL);
         BodyPane.setAlignment(Pos.TOP_LEFT);
         BodyPane.setPrefHeight(400);
@@ -181,6 +232,8 @@ public class View implements Observer  {
         BodyPane.setPadding(new Insets(10,10,10,10));
         BodyPane.setVgap(5);
         BodyPane.setHgap(5);
+        
+        
         
         loginPane.getChildren().add(new Label("Adresse : "));
         loginPane.getChildren().add(tmp3);
@@ -193,10 +246,12 @@ public class View implements Observer  {
             public void handle(ActionEvent event) {
                 loginPane.setVisible(false);
                 listView.setVisible(true);
-                
+                OThread.setUserName(tmp3.getText());
+                OThread.setPassword(tmp4.getText());
                 listView.setPrefHeight(40);
                 listView.setPrefWidth(200);
                 BodyPane.setVisible(true);
+                courantClt.launch();
                 if(rootGrid!=null) rootGrid.setCenter(BodyPane);
             }
         });

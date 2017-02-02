@@ -36,6 +36,7 @@ public class ThreadClient extends Thread {
         this.client = new ObservableClient(socket);
         try {
             in = new BufferedInputStream(socket.getInputStream());
+            this.client.setEtat("Connexion open");
         } catch (IOException ex) {
             Logger.getLogger(ThreadClient.class.getName()).log(Level.SEVERE, null, ex);
         }
